@@ -30,4 +30,4 @@ Yang, X., Jomaa, S., Büttner, O., & Rode, M. (2019), Autotrophic nitrate uptake
 5. Set *processCase(11) = 1* in **mhm.nml** to activate the nitrate simulation.
 6. Run the model with "./mhm-nitrate" (or compile again using the "make" command).
 
-agri_manage and mrm_net_set_up modified mhm_2dfraft
+agri_manage and mrm_net_set_up modified in the mhm_2dfraft
