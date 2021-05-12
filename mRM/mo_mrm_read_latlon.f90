@@ -127,7 +127,7 @@ CONTAINS
        call get_NcVar( trim(fname), 'lat_l0', dummy )
        
        ! append it to global variables
-       call append( L0_latitude, pack( dummy, mask ))
+       call append( L0_latitude, pack( dummy,.true.))
        deallocate(dummy)
        
        ! read dimension length of variable in netcdf File
@@ -255,7 +255,7 @@ CONTAINS
     ! append it to global variables
     call append( L11_rect_longitude, pack(dummy, .true.))
     deallocate(dummy, mask)
-
+    
   end subroutine read_latlon
 
 END MODULE mo_mrm_read_latlon

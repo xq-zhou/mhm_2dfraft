@@ -320,7 +320,7 @@ CONTAINS
                '  Sequence', &
                '          ', &
                '          ', &
-               '     Slope'
+               '  Sinuosity'   ! add by zhouxi
           !
           write(uconfig, 105) '        Id', &
                '      Node', &

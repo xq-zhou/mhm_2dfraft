@@ -677,12 +677,12 @@ CONTAINS
      iNode = nLink_from(i)
      tNode = nLink_to(i)
      ! yearly average channel discharge (for empirial channel width and depth calculation)
-     nLink_yravg_q(i) = nLink_yravg_q(i) + (nNode_qTR(iNode) - nLink_yravg_q(i)) / (365.0_dp )  
+     nLink_yravg_q(i) = nLink_yravg_q(i) + (nNode_qTR(iNode) - nLink_yravg_q(i)) / (90.0_dp )  
      ! empirial equations for channel width and depth
      width = 5.40_dp *nLink_yravg_q(i) **(0.50_dp)  ! from M. Rode (2016), EST
      depth = 0.27_dp *nLink_yravg_q(i) **(0.39_dp)  ! from J.A. Moody(2002), Earth Surface Processes and Landforms
      benthic_area = width * nLink_length(i)
-     ! write river morphologic characteristics  added by zhouxi
+     ! ! write river morphologic characteristics  added by zhouxi
      if ((tt > 3653)  ) then
      write(24,*) i,width,nLink_length(i),benthic_area,nLink_yravg_q(i)
      end if
@@ -841,9 +841,10 @@ CONTAINS
   aqdenitri = pardeniratew * f_temp * f_conc * benthic_area / DT
   aqdenitri = min(maxdenitriwater*INpool, aqdenitri) 
 
-  if ((tt > 3653)  ) then
-     write(25,*) i,f_temp,f_conc,benthic_area,aqdenitri
-   end if
+  ! write river denitrification added by zhouxi
+  ! if ((tt > 3653)  ) then
+     ! write(25,*) i,f_temp,f_conc,benthic_area,aqdenitri,INpool
+   ! end if
 
 
   !update pool and conc.
@@ -908,7 +909,10 @@ CONTAINS
   
   !!for writing out pure assimiloray uptake
   !aqassimil = aqassimil0
-   
+   ! write river assimiloray uptake added by zhouxi
+     ! if ((tt > 3653)  ) then
+     ! write(26,*) i,f_light,benthic_area,aqassimil0,aqassimil,INpool
+     ! end if
 
 
   end subroutine instream_nutrient_processes 
@@ -2087,7 +2091,7 @@ CONTAINS
     do hh =1, size(concsoil, 1)
      
        concsoil(hh,:) = concsoil(hh,:) * (soilMoisture(hh) + aet_soil(hh) + infiltration(hh)) / (soilMoisture(hh)+ infiltration(hh))  
-
+       cinfiltration(hh,:) = concsoil(hh,:)
        if (hh == 1) then
           call mix_conc(prevstep_soilMoisture(hh), concsoil(hh,:), prec_effect*(1-frac_sealed), cprec_effect(:))
        else

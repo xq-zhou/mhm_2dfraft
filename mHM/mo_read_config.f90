@@ -739,7 +739,7 @@ CONTAINS
           call message()
           call message('***ERROR: Resolution of routing is smaller than hydrological model resolution!')
           call message('   FILE: mhm.nml, namelist: mainconfig, variable: resolutionRouting')
-          STOP
+          !STOP
 
        else if ( nint(cellFactorRbyH * 100.0_dp) .gt. 100) then
           if( nint(mod(cellFactorRbyH, 2.0_dp) * 100.0_dp) .ne. 0) then

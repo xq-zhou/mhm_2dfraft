@@ -2006,12 +2006,19 @@ CONTAINS
     ! local
     real(dp), allocatable, dimension(:,:) :: runoff                   ! modelled runoff for a given parameter set
     !                                                                 ! dim1=nTimeSteps, dim2=nGauges
+    real(dp), allocatable, dimension(:,:,:) :: nutrient               ! modelled nutrient conc. 
+	                                                                  ! dim1= nTimeSteps, dim2=nGauges, dim3= nsubstances
+    !
     integer(i4)                           :: gg                       ! gauges counter
     integer(i4)                           :: nGaugesTotal
     real(dp), dimension(:),   allocatable :: runoff_agg               ! aggregated simulated runoff
     real(dp), dimension(:),   allocatable :: runoff_obs               ! measured runoff
     logical,  dimension(:),   allocatable :: runoff_obs_mask          ! mask for measured runoff
-    !
+    !    !for nitrate added by zhouxi 2021-05
+    real(dp), dimension(:),   allocatable :: nitrate_agg               ! aggregated simulated nitrate
+    real(dp), dimension(:),   allocatable :: nitrate_obs               ! measured nitrate
+    logical,  dimension(:),   allocatable :: nitrate_obs_mask          ! mask for measured nitrate	
+    real(dp)                              :: qcal,incal
 
     call eval(parameterset, runoff=runoff)
     nGaugesTotal = size(runoff, dim=2)
@@ -2020,15 +2027,23 @@ CONTAINS
     do gg=1, nGaugesTotal
        ! extract runoff
        call extract_runoff( gg, runoff, runoff_agg, runoff_obs, runoff_obs_mask )
+       !added by zhouxi 2021-05
+       call extract_nitrate(gg, nutrient(:,:,1), nitrate_agg, nitrate_obs, nitrate_obs_mask)
        ! KGE
-       objective_multiple_gauges_kge_power6 = objective_multiple_gauges_kge_power6 + &
-            ( (1.0_dp - kge(runoff_obs, runoff_agg, mask=runoff_obs_mask) )/ real(nGaugesTotal,dp) )**6 
+       ! objective_multiple_gauges_kge_power6 = objective_multiple_gauges_kge_power6 + &
+            ! ( (1.0_dp - kge(runoff_obs, runoff_agg, mask=runoff_obs_mask) )/ real(nGaugesTotal,dp) )**6 
+       ! for discharge
+       qcal= (1.0_dp-kge( runoff_obs, runoff_agg, mask=runoff_obs_mask) )/ real(nGaugesTotal,dp) )**6 
+       !for nitrate concentration
+       incal = (1.0_dp-kge(  nitrate_obs, nitrate_agg, mask=nitrate_obs_mask) )/ real(nGaugesTotal,dp) )**6
+       !aggregate with average value
+       objective_multiple_gauges_kge_power6 = objective_multiple_gauges_kge_power6 + (0.1_dp * incal+ 0.9_dp * qcal)
     end do
     objective_multiple_gauges_kge_power6 = objective_multiple_gauges_kge_power6**onesixth 
     write(*,*) 'objective_multiple_gauges_kge_power6 = ', objective_multiple_gauges_kge_power6
 
     deallocate( runoff_agg, runoff_obs, runoff_obs_mask )
-
+    deallocate( nitrate_agg, nitrate_obs, nitrate_obs_mask)
   END FUNCTION objective_multiple_gauges_kge_power6
 
 

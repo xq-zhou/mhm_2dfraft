@@ -441,9 +441,10 @@ CONTAINS
        !open(34, file='sand_check.txt') 
        !open(35, file='clay_check.txt') 
        !open(36, file='Db_check.txt') 
-        open(24, file='river_morph.txt') 
-        open(25, file='denitri_para.txt')
-        
+        !open(124, file='L0_latlon.txt') 
+        !open(25, file='denitri_para.txt')
+        !open(26, file='assim_para.txt')
+               
        do tt = 1, nTimeSteps
           if ( timeStep_model_inputs(ii) .eq. 0_i4 ) then
              ! whole meteorology is already read

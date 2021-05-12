@@ -29,8 +29,8 @@ module mo_mrm_net_startup
   PUBLIC :: L11_fraction_sealed_floodplain
   PUBLIC :: get_distance_two_lat_lon_points
 contains
+  
   ! --------------------------------------------------------------------------
-
   !     NAME
   !         L11_variable_init
   !     PURPOSE
@@ -671,7 +671,7 @@ contains
              (jCol .le. 0_i4) .or. (jCol .gt. ncols0)) then
             is_outlet = .True.
          else
-            if (fdir0(iRow, jCol) .lt. 0) is_outlet = .True.
+            if (fdir0(iRow, jCol) .le. 0) is_outlet = .True.
          end if
          !
          if (is_outlet) then
@@ -846,7 +846,8 @@ contains
 
    ! L0 data sets
    call append( L0_draSC, PACK ( draSC0(:,:),  mask0)  ) 
-   call append( L0_L11_Id, PACK ( L11Id_on_L0(:,:), mask0)  )
+   call append( L0_L11_Id, PACK ( L11Id_on_L0(:,:), mask0)  )  
+   
    basin_mrm%L0_Noutlet(iBasin) = Noutlet
    ! set L0 outlet coordinates
    old_Noutlet = size(basin_mrm%L0_rowOutlet, dim=1)
@@ -866,6 +867,9 @@ contains
       call append(basin_mrm%L0_colOutlet, dummy)
       deallocate(dummy)
    end if
+   
+   !write(122,*) L0_draSC
+   !write(123,*) L0_L11_Id, basin_mrm%L0_rowOutlet,basin_mrm%L0_colOutlet
    
    ! L11 data sets
    call append( L11_nOutlets,          count(fdir11 .eq. 0_i4) )
@@ -1013,8 +1017,6 @@ contains
        jj = jj + 1
        nLinkFromN(jj) = fn
        nLinkToN(jj)   = tn
-       
-       write(123,*) kk,cellCoor11(kk,1),cellCoor11(kk,2),Id11(ic,jc),fDir11(ic, jc)
     end do
    
     !--------------------------------------------------------
@@ -1658,7 +1660,6 @@ contains
  
   subroutine L11_stream_features(iBasin)
     use mo_mrm_constants, only: nodata_i4, nodata_dp
-    use mo_constants, only: SQRT2_dp
     use mo_append, only: append
     use mo_mrm_tools, only: get_basin_info_mrm
     use mo_mrm_global_variables, only: &
@@ -1671,8 +1672,6 @@ contains
          L11_fCol,        & ! IN:    from col in L0 grid
          L11_tRow,        & ! IN:    to row in L0 grid 
          L11_tCol,        & ! IN:    to col in L0 grid 
-         level11,         & ! IN:    cellsize to calculate sinuosity
-         L11_fDir,        & ! IN:    flow direcetion to calculate sinuosity
          L11_netPerm,     & ! IN:    routing order (permutation)
          L0_streamNet,    & ! IN:    stream network
          L0_floodPlain,   & ! IN:    floodplains of stream i
@@ -1680,7 +1679,10 @@ contains
          L11_aFloodPlain, & ! IN:    area of the flood plain [m2]
          L11_nOutlets,    & ! IN:    Number of Outlets/Sinks
          L11_slope ,      &          ! INOUT: normalized average slope
-         L11_sinuosity
+         L11_sinuosity,    &  ! added by zhouxi
+         L0_latitude,      &
+         L0_longitude
+    use mo_mrm_read_latlon, only: read_latlon
          
     implicit none
 
@@ -1707,7 +1709,6 @@ contains
     integer(i4), dimension(:),   allocatable :: nLinkToRow     
     integer(i4), dimension(:),   allocatable :: nLinkToCol  
     integer(i4), dimension(:),   allocatable ::  fDir
-    real(dp),    dimension(:),   allocatable ::  sinuosity
     real(dp),    dimension(:),   allocatable :: nLinkLength
     real(dp),    dimension(:),   allocatable :: nLinkAFloodPlain
     real(dp),    dimension(:),   allocatable :: nLinkSlope
@@ -1716,10 +1717,12 @@ contains
     integer(i4)                              :: fId,  tId
     integer(i4), dimension(:,:), allocatable :: stack, append_chunk
     integer(i4), dimension(:),   allocatable :: dummy_1d
-    real(dp)                                 :: length
+    real(dp)                                 :: length,straight
     integer(i4), dimension(:,:), allocatable :: nodata_i4_tmp
     real(dp),    dimension(:,:), allocatable :: nodata_dp_tmp
-
+    real(dp),    dimension(:),   allocatable ::  sinuosity    !added by zhouxi
+    real(dp),    dimension(:,:),   allocatable ::  lat
+    real(dp),    dimension(:,:),   allocatable ::  long
     ! level-0 information
     call get_basin_info_mrm ( iBasin, 0, nrows0, ncols0, ncells=nCells0, &
          iStart=iStart0, iEnd=iEnd0, mask=mask0     ) 
@@ -1736,6 +1739,9 @@ contains
     allocate ( areaCell0     ( nrows0, ncols0 ) )
     allocate ( streamNet0    ( nrows0, ncols0 ) )
     allocate ( floodPlain0   ( nrows0, ncols0 ) )
+    allocate (  lat           (nrows0, ncols0))  !added by zhouxi
+    allocate (  long          (nrows0, ncols0))
+
 
     !  Routing network vectors have nNodes size instead of nLinks to
     !  avoid the need of having two extra indices to identify a basin.
@@ -1751,7 +1757,7 @@ contains
     allocate ( nLinkAFloodPlain  ( nNodes ) )
     allocate ( nLinkSlope        ( nNodes ) )
     allocate ( fDir              ( nNodes ) )
-    allocate ( sinuosity         ( nNodes ) )
+    allocate ( sinuosity         ( nNodes ) ) !added by zhouxi
     
     allocate (nodata_i4_tmp      ( nrows0, ncols0 ) )
     allocate (nodata_dp_tmp      ( nrows0, ncols0 ) )
@@ -1763,7 +1769,10 @@ contains
     areaCell0(:,:)       = nodata_dp
     streamNet0(:,:)      = nodata_i4
     floodPlain0(:,:)     = nodata_i4
-
+    lat(:,:)             = nodata_dp
+    long(:,:)            = nodata_dp
+    
+    
     stack(:,:)           = nodata_i4
     append_chunk(:,:)    = nodata_i4
     netPerm(:)           = nodata_i4
@@ -1774,12 +1783,14 @@ contains
     nLinkLength(:)       = nodata_dp
     nLinkAFloodPlain(:)  = nodata_dp
     nLinkSlope(:)        = nodata_dp
-    fDir(:)              = nodata_i4
+   
     sinuosity(:)         = nodata_dp
     
     nodata_i4_tmp(:,:)   = nodata_i4
     nodata_dp_tmp(:,:)   = nodata_dp
-
+    
+    !get L0 lat-lon
+    call read_latlon(1)
     ! for a single node model run
     if(nNodes .GT. 1) then
       ! get L0 fields
@@ -1787,14 +1798,16 @@ contains
       elev0(:,:) =       UNPACK( L0_elev_mRM (iStart0:iEnd0),  mask0, nodata_dp_tmp )
       fDir0(:,:) =       UNPACK( L0_fDir (iStart0:iEnd0),  mask0, nodata_i4_tmp )
       areaCell0(:,:) =   UNPACK( L0_areaCell (iStart0:iEnd0),  mask0, nodata_dp_tmp )
-
+      lat(:,:)   =   reshape( L0_latitude(1:nrows0* ncols0), (/nrows0,ncols0/)  )
+      long(:,:)  =    reshape( L0_longitude(1:nrows0* ncols0),  (/nrows0,ncols0/) )
+      
       ! get network vectors of L11 
       netPerm(:)      = L11_netPerm ( iStart11 : iEnd11 )
       nLinkFromRow(:) = L11_fRow    ( iStart11 : iEnd11 )
       nLinkFromCol(:) = L11_fCol    ( iStart11 : iEnd11 )
       nLinkToRow(:)   = L11_tRow    ( iStart11 : iEnd11 )
       nLinkToCol(:)   = L11_tCol    ( iStart11 : iEnd11 )
-      fDir (:)        = L11_fDir    ( iStart11 : iEnd11 )
+     
 
       ! Flood plains:  stream network delineation
       streamNet0(:,:)  = nodata_i4
@@ -1863,19 +1876,21 @@ contains
          nLinkAFloodPlain(ii) = sum ( areaCell0(:,:),  mask = ( floodPlain0(:,:) == ii ) )
          !  old > real( count( floodPlain0(:,:,) == i), dp ) * areaCell0
           
-          !sinuosity
-          
-        select case (fDir(ii))
-           case(1, 4, 16, 64)       ! E, S, W, N
-              sinuosity(ii) = nLinkLength(ii)/level11%cellsize(iBasin)
-           case(2, 8, 32, 128)      ! SE, SW, NW, NE
-              sinuosity(ii)= nLinkLength(ii)/ ( SQRT2_dp*level11%cellsize(iBasin) )
-        end select
-         
-          ! write(123,*) ii, nLinkLength(ii),  frow, fcol               
+        ! sinousity=linklength/two_points_length     added by zhouxi
+        !two points straight length
+        call get_distance_two_lat_lon_points( lat( nLinkFromRow(ii),nLinkFromCol(ii)), long( nLinkFromRow(ii),nLinkFromCol(ii)),&
+                                             lat( nLinkToRow(ii),nLinkToCol(ii)), long(nLinkToRow(ii),nLinkToCol(ii) ),straight)
+         ! check lat lon of specific grids
+           !write(124,*) lat( 1,1 ), lat(1,720), lat(2,1), lat(2,720),lat(1,2), lat(800,2), lat(800,1),lat(800,720)
+           ! write(124,*)  nLinkFromRow(ii),nLinkFromCol(ii),nLinkToRow(ii),nLinkToCol(ii),nLinkLength(ii), straight,&
+                      ! lat( nLinkFromRow(ii),nLinkFromCol(ii)),long( nLinkFromRow(ii),nLinkFromCol(ii)),&
+                      ! lat( nLinkToRow(ii),nLinkToCol(ii)), long(nLinkToRow(ii),nLinkToCol(ii) ) 
+        !sinuosity
+        sinuosity(ii) = nLinkLength(ii)/straight
+        if (sinuosity(ii) > 10_dp) sinuosity(ii) = 0.0001_dp
       end do
-        
-      ! end of multi-node network design loop
+         
+    ! end of multi-node network design loop
     end if
 
     !--------------------------------------------------------
@@ -1896,7 +1911,7 @@ contains
     deallocate (&
          mask0, iD0, elev0, fDir0, areaCell0, streamNet0, floodPlain0,      &
          stack, netPerm, nLinkFromRow, nLinkFromCol, nLinkToRow, nLinkToCol, &       
-         nLinkLength, nLinkAFloodPlain, nLinkSlope, dummy_1d, fDir, sinuosity   ) 
+         nLinkLength, nLinkAFloodPlain, nLinkSlope, dummy_1d, fDir, sinuosity,lat,long   ) 
     deallocate(nodata_i4_tmp,nodata_dp_tmp)    
 
   end subroutine L11_stream_features
