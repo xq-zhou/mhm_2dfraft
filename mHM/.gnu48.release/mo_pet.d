@@ -1,0 +1,2 @@
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_pet.d : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/mo_pet.f90
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_pet.o : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_pet.d /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_utils.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_kind.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_constants.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_mhm_constants.o

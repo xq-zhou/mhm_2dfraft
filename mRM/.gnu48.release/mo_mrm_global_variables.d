@@ -1,0 +1,2 @@
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_global_variables.d : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/mo_mrm_global_variables.f90
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_global_variables.o : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_global_variables.d /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_kind.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/common/.gnu48.release/mo_common_variables.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_constants.o

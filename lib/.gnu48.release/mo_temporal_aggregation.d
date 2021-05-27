@@ -1,0 +1,2 @@
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_temporal_aggregation.d : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/mo_temporal_aggregation.f90
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_temporal_aggregation.o : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_temporal_aggregation.d /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_julian.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_kind.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_constants.o

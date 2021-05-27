@@ -1,0 +1,2 @@
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_tools.d : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/mo_mrm_tools.f90
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_tools.o : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_tools.d /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_kind.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_message.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_string_utils.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mRM/.gnu48.release/mo_mrm_global_variables.o

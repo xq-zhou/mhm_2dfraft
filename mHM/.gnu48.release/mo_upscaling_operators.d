@@ -1,0 +1,2 @@
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_upscaling_operators.d : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/mo_upscaling_operators.f90
+/gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_upscaling_operators.o : /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_upscaling_operators.d /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/lib/.gnu48.release/mo_kind.o /gpfs0/home/zhouxi/mhm_v5.7/mhm/src/mHM/.gnu48.release/mo_mhm_constants.o
